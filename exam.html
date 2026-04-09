@@ -8,163 +8,72 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body {
-            font-family: 'Kalpurush', Arial, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
+        body { font-family: 'Kalpurush', Arial, sans-serif; background: #f4f7f6; padding: 20px; margin: 0; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* Header & Sticky Timer */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 2px solid #4CAF50; padding-bottom: 15px; margin-bottom: 20px; 
+            position: sticky; top: 0; background: white; z-index: 100; 
         }
+        .header h2 { margin: 0; color: #333; font-size: 20px; }
+        #timer { color: #d32f2f; font-weight: bold; background: #ffebee; padding: 8px 15px; border-radius: 5px; font-size: 18px; border: 1px solid #ffcdd2; }
+        
+        .btn-exit { background: #f44336; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        
+        /* Question Styles */
+        .question-block { margin-bottom: 25px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #fafafa; }
+        .question-text { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333; }
+        .option-label { display: block; padding: 10px; background: #fff; border: 1px solid #ccc; margin-bottom: 10px; border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .option-label:hover { background: #e8f5e9; }
+        input[type="radio"] { margin-right: 10px; transform: scale(1.2); }
+        input[type="text"] { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; margin-top: 5px; }
+        
+        .passage-box { background: #e3f2fd; padding: 15px; border-left: 5px solid #2196F3; border-radius: 5px; margin-bottom: 20px; }
+        
+        .written-options { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .written-btn { flex: 1; min-width: 120px; padding: 10px; text-align: center; border: 1px solid #90caf9; border-radius: 5px; cursor: pointer; font-weight: bold; background: #e3f2fd; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #4CAF50;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-
-        .header-left h2 {
-            margin: 0;
-            color: #333;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .btn-exit {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-exit:hover {
-            background-color: #d32f2f;
-        }
-
-        .question-block {
-            margin-bottom: 25px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #fafafa;
-        }
-
-        .question-text {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-        }
-
-        /* অপশন স্টাইল */
-        .option-label {
-            display: block;
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .option-label:hover {
-            background-color: #e8f5e9;
-        }
-
-        input[type="radio"] {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
-
-        /* লিখিত প্রশ্নের স্পেশাল অপশন স্টাইল */
-        .written-options {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .written-btn {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            background-color: #e3f2fd;
-            border: 1px solid #90caf9;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* নেভিগেশন বাটন */
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-
-        button.nav-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-            color: white;
-        }
-
-        .btn-prev { background-color: #757575; }
-        .btn-next { background-color: #2196F3; }
-        .btn-submit { background-color: #FF5722; display: none; }
-
+        /* Navigation */
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 30px; }
+        button.nav-btn { padding: 12px 25px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-prev { background: #757575; }
+        .btn-next { background: #2196F3; }
+        .btn-submit { background: #FF5722; display: none; }
+        
         .section-view { display: none; }
         .active-section { display: block; }
-
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <div class="header-left">
-            <h2 id="examTitle">পরীক্ষা লোড হচ্ছে...</h2>
-        </div>
-        <div class="header-right">
-            <h3 id="timer" style="color: #d32f2f; margin: 0;">সময়: --:--</h3>
-            <button class="btn-exit" onclick="exitExam()">❌ বের হও</button>
+        <h2 id="examTitle">লোড হচ্ছে...</h2>
+        <div style="display: flex; align-items: center;">
+            <div id="timer">সময়: --:--</div>
+            <button class="btn-exit" onclick="exitExam()">❌</button>
         </div>
     </div>
 
     <form id="examForm">
         <div id="questionsContainer">
-            </div>
+            <h3 style="text-align: center; color: #666;">প্রশ্নপত্র তৈরি করা হচ্ছে...</h3>
+        </div>
 
         <div class="nav-buttons">
-            <button type="button" class="nav-btn btn-prev" id="prevBtn" onclick="changeSection(-1)" style="display: none;">আগের পেজ</button>
-            <button type="button" class="nav-btn btn-next" id="nextBtn" onclick="changeSection(1)">পরের পেজ</button>
-            <button type="button" class="nav-btn btn-submit" id="submitBtn" onclick="submitExam()">পরীক্ষা জমা দাও</button>
+            <button type="button" onclick="changeSection(-1)" id="prevBtn" class="nav-btn btn-prev" style="display:none;">আগের পেজ</button>
+            <button type="button" onclick="changeSection(1)" id="nextBtn" class="nav-btn btn-next" style="display:none;">পরের পেজ</button>
+            <button type="button" onclick="submitExam(false)" id="submitBtn" class="nav-btn btn-submit">পরীক্ষা জমা দাও</button>
         </div>
     </form>
 </div>
 
 <script>
-    // আপনার দেওয়া ফায়ারবেস কনফিগারেশন
+    // ১. কনফিগারেশন
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbyyykIVG3Hgvk5HdMIXueAazFap1iNtqfMnyVKFGgP_qc7SMRmWTSlkd86tn1btuDOp/exec";
+    
     const firebaseConfig = {
         apiKey: "AIzaSyAXFM4AK9ksDFF3yfR_R9DQDNhePcApYWY",
         authDomain: "primary-scholarship-exam.firebaseapp.com",
@@ -175,111 +84,98 @@
         appId: "1:938899950508:web:9e4d3c77aee2578ddc8809"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let allQuestions = [];
+    // ২. গ্লোবাল ভেরিয়েবল
+    let studentID = localStorage.getItem("loggedInUserID");
+    let currentExamID = sessionStorage.getItem("currentExamID");
     let groupedSections = {};
-    let currentSectionIndex = 0;
     let sectionKeys = [];
-
-    const studentID = localStorage.getItem("loggedInUserID");
-    const examID = sessionStorage.getItem("currentExamID") || "ModelTest_02"; 
-    const memoryKey = studentID + "_" + examID;
+    let currentSectionIndex = 0;
+    let timerInterval;
 
     window.onload = function() {
-        if(!studentID) {
-            alert("লগইন পাওয়া যায়নি!");
-            window.location.replace("login.html");
+        if (!studentID || !currentExamID) {
+            window.location.replace("dashboard.html");
             return;
         }
-        document.getElementById('examTitle').innerText = examID.replace(/_/g, " ");
-        loadQuestionsFromFirebase();
+        document.getElementById('examTitle').innerText = sessionStorage.getItem("currentExamName") || "Online Exam";
+        loadExamData();
     };
 
-    function loadQuestionsFromFirebase() {
-        database.ref('Exams/' + examID).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                
-                // প্রশ্নগুলোকে সেকশন অনুযায়ী ভাগ করা
-                for (let key in data) {
-                    let q = data[key];
-                    q.id = key;
-                    let sec = q.Section || "1"; 
-                    
-                    if (!groupedSections[sec]) groupedSections[sec] = [];
-                    groupedSections[sec].push(q);
-                }
+    // ৩. প্রশ্ন লোড করা (API থেকে)
+    function loadExamData() {
+        const duration = parseInt(sessionStorage.getItem("currentExamTime")) || 30;
+        startTimer(duration);
 
-                sectionKeys = Object.keys(groupedSections).sort((a, b) => a - b);
-                renderAllSections();
-                restoreDraftAnswers(); 
-            } else {
-                document.getElementById('questionsContainer').innerHTML = "<p style='color:red;'>কোনো প্রশ্ন পাওয়া যায়নি!</p>";
+        fetch(`${SHEET_URL}?action=getExam&tabId=${currentExamID}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.error) throw new Error("No Data");
+
+            // সেকশন অনুযায়ী ভাগ করা
+            for (let id in data) {
+                let q = data[id]; q.id = id;
+                let sec = q.Section || "1";
+                if (!groupedSections[sec]) groupedSections[sec] = [];
+                groupedSections[sec].push(q);
             }
+            sectionKeys = Object.keys(groupedSections).sort((a, b) => a - b);
+            renderSections();
+            restoreDraft();
+        })
+        .catch(err => {
+            document.getElementById('questionsContainer').innerHTML = "<h3 style='color:red;'>প্রশ্ন লোড করতে ব্যর্থ! ইন্টারনেট চেক করো।</h3>";
         });
     }
 
-    function renderAllSections() {
+    // ৪. প্রশ্ন রেন্ডার করা
+    function renderSections() {
         const container = document.getElementById('questionsContainer');
         container.innerHTML = '';
+        let qCount = 1;
 
-        sectionKeys.forEach((secKey, index) => {
-            let sectionHTML = `<div class="section-view ${index === 0 ? 'active-section' : ''}" id="section_${index}">`;
+        sectionKeys.forEach((key, idx) => {
+            let html = `<div class="section-view ${idx === 0 ? 'active-section' : ''}" id="sec_${idx}">`;
             
-            groupedSections[secKey].forEach((q, qIndex) => {
-                sectionHTML += `<div class="question-block">
-                                    <div class="question-text">${qIndex + 1}. ${q.Question} [নম্বর: ${q.Marks || 1}]</div>`;
-
-                // এমসিকিউ এর জন্য
-                if (q.Question_Type === 'mcq') {
-                    const options = ['Option_A', 'Option_B', 'Option_C', 'Option_D'];
-                    options.forEach(opt => {
-                        if (q[opt]) {
-                            sectionHTML += `
-                            <label class="option-label">
-                                <input type="radio" name="${q.id}" value="${q[opt]}" onchange="saveDraft()">
-                                ${q[opt]}
-                            </label>`;
-                        }
+            groupedSections[key].forEach(q => {
+                if(q.Question_Type === 'passage') {
+                    html += `<div class="passage-box"><strong>উদ্দীপক:</strong><p>${q.Question}</p></div>`;
+                } else if(q.Question_Type === 'mcq') {
+                    html += `<div class="question-block">
+                        <div class="question-text">${qCount++}. ${q.Question}</div>`;
+                    ['Option_A','Option_B','Option_C','Option_D'].forEach(opt => {
+                        if(q[opt]) html += `<label class="option-label"><input type="radio" name="${q.id}" value="${q[opt]}" onchange="saveDraft()"> ${q[opt]}</label>`;
                     });
-                } 
-                // লিখিত/রচনামূলক প্রশ্নের জন্য
-                else if (q.Question_Type === 'written') {
-                    sectionHTML += `
-                    <div class="written-options">
-                        <label class="written-btn"><input type="radio" name="${q.id}" value="খাতায় লিখেছি" onchange="saveDraft()"> 📝 খাতায় লিখেছি</label>
-                        <label class="written-btn" style="background: #ffebee; border-color: #ef9a9a;"><input type="radio" name="${q.id}" value="খাতায় লিখিনি" onchange="saveDraft()"> ❌ খাতায় লিখিনি</label>
-                        <label class="written-btn" style="background: #fff3e0; border-color: #ffcc80;"><input type="radio" name="${q.id}" value="পারি না" onchange="saveDraft()"> 🤷 পারি না</label>
+                    html += `</div>`;
+                } else if(q.Question_Type === 'written') {
+                    html += `<div class="question-block">
+                        <div class="question-text">${qCount++}. ${q.Question}</div>
+                        <div class="written-options">
+                            <label class="written-btn"><input type="radio" name="${q.id}" value="লিখেছি" onchange="saveDraft()"> ✅ লিখেছি</label>
+                            <label class="written-btn" style="background:#ffebee;"><input type="radio" name="${q.id}" value="লিখিনি" onchange="saveDraft()"> ❌ লিখিনি</label>
+                        </div>
                     </div>`;
                 }
-
-                sectionHTML += `</div>`;
             });
-
-            sectionHTML += `</div>`;
-            container.innerHTML += sectionHTML;
+            html += `</div>`;
+            container.innerHTML += html;
         });
-
-        updateNavigationButtons();
+        updateNav();
     }
 
-    // নেভিগেশন লজিক
-    function changeSection(step) {
-        document.getElementById(`section_${currentSectionIndex}`).classList.remove('active-section');
-        currentSectionIndex += step;
-        document.getElementById(`section_${currentSectionIndex}`).classList.add('active-section');
-        
-        updateNavigationButtons();
-        window.scrollTo(0, 0); 
+    // ৫. নেভিগেশন ও ড্রাফট
+    function changeSection(n) {
+        document.getElementById('sec_'+currentSectionIndex).classList.remove('active-section');
+        currentSectionIndex += n;
+        document.getElementById('sec_'+currentSectionIndex).classList.add('active-section');
+        updateNav();
+        window.scrollTo(0,0);
     }
 
-    function updateNavigationButtons() {
+    function updateNav() {
         document.getElementById('prevBtn').style.display = currentSectionIndex === 0 ? 'none' : 'inline-block';
-        
         if (currentSectionIndex === sectionKeys.length - 1) {
             document.getElementById('nextBtn').style.display = 'none';
             document.getElementById('submitBtn').style.display = 'inline-block';
@@ -289,66 +185,62 @@
         }
     }
 
-    // ড্রাফট সেভ করা
     function saveDraft() {
-        const formData = new FormData(document.getElementById('examForm'));
-        const answers = Object.fromEntries(formData.entries());
-        
-        const dataToSave = {
-            answers: answers,
-            timestamp: new Date().getTime()
-        };
-        localStorage.setItem(memoryKey, JSON.stringify(dataToSave));
+        const data = Object.fromEntries(new FormData(document.getElementById('examForm')));
+        localStorage.setItem("draft_" + studentID + "_" + currentExamID, JSON.stringify(data));
     }
 
-    // ড্রাফট রিস্টোর করা
-    function restoreDraftAnswers() {
-        const savedData = localStorage.getItem(memoryKey);
-        if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            const answers = parsedData.answers;
+    function restoreDraft() {
+        const saved = localStorage.getItem("draft_" + studentID + "_" + currentExamID);
+        if (saved) {
+            const answers = JSON.parse(saved);
             for (let name in answers) {
-                let element = document.querySelector(`input[name="${name}"][value="${answers[name]}"]`);
-                if (element) element.checked = true;
+                let rb = document.querySelector(`input[name="${name}"][value="${answers[name]}"]`);
+                if (rb) rb.checked = true;
             }
         }
     }
 
-    // এক্সিট বাটন ফাংশন
-    function exitExam() {
-        const confirmExit = confirm("তুমি কি সত্যিই পরীক্ষা থেকে বের হতে চাও?\nতোমার দেওয়া উত্তরগুলো ড্রাফট হিসেবে সেভ থাকবে।");
-        if (confirmExit) {
-            window.location.replace("dashboard.html");
-        }
+    // ৬. টাইমার ও সাবমিট
+    function startTimer(mins) {
+        let endTime = sessionStorage.getItem("end_" + currentExamID) || (new Date().getTime() + mins * 60000);
+        sessionStorage.setItem("end_" + currentExamID, endTime);
+
+        timerInterval = setInterval(() => {
+            let remain = endTime - new Date().getTime();
+            if (remain <= 0) {
+                clearInterval(timerInterval);
+                submitExam(true);
+            } else {
+                let m = Math.floor(remain/60000);
+                let s = Math.floor((remain%60000)/1000);
+                document.getElementById('timer').innerText = `সময়: ${m}:${s<10?'0':''}${s}`;
+            }
+        }, 1000);
     }
 
-    // ফায়ারবেসে সাবমিট করা
-    function submitExam() {
-        const confirmSubmit = confirm("তুমি কি পরীক্ষা জমা দিতে চাও?");
-        if (!confirmSubmit) return;
+    function submitExam(isAuto) {
+        if (!isAuto && !confirm("পরীক্ষা জমা দিতে চাও?")) return;
+        clearInterval(timerInterval);
 
-        const formData = new FormData(document.getElementById('examForm'));
-        const finalAnswers = Object.fromEntries(formData.entries());
+        const answers = Object.fromEntries(new FormData(document.getElementById('examForm')));
+        const resultPath = `Students_Data/${studentID}/exam_history/${currentExamID}`;
 
-        const today = new Date().toLocaleDateString("bn-BD");
-        const resultData = {
-            answers: finalAnswers,
-            date: today,
-            status: "Live"
-        };
+        database.ref(resultPath).set({
+            answers: answers,
+            date: new Date().toLocaleString("bn-BD"),
+            status: "Submitted"
+        }).then(() => {
+            localStorage.removeItem("draft_" + studentID + "_" + currentExamID);
+            sessionStorage.removeItem("end_" + currentExamID);
+            alert("সফলভাবে জমা হয়েছে!");
+            window.location.replace("result.html");
+        }).catch(e => alert("Error: " + e.message));
+    }
 
-        // ইউজারের প্রোফাইলে ডাটা পাঠানো
-        database.ref('Students_Data/' + studentID + '/exam_history/' + examID).set(resultData)
-        .then(() => {
-            localStorage.removeItem(memoryKey); // সাবমিট হলে ড্রাফট মুছবে
-            alert("পরীক্ষা সফলভাবে জমা হয়েছে!");
-            window.location.replace("result.html"); 
-        })
-        .catch((error) => {
-            alert("ইন্টারনেট সমস্যা! আবার চেষ্টা করুন।");
-        });
+    function exitExam() {
+        if (confirm("এখনই বের হতে চাও? উত্তরগুলো ড্রাফট হিসেবে থাকবে।")) window.location.replace("dashboard.html");
     }
 </script>
-
 </body>
 </html>
