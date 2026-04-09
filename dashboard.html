@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>স্টুডেন্ট ড্যাশবোর্ড</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body {
+            font-family: 'Kalpurush', Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar h2 {
+            margin: 0;
+        }
+
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .welcome-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .welcome-card h3 {
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+
+        .section-title {
+            color: #555;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* এক্সাম কার্ডের ডিজাইন */
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .exam-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            border-left: 5px solid #2196F3;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .exam-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .exam-info {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .start-btn {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .start-btn:hover {
+            background-color: #1976D2;
+        }
+
+        #loadingExams {
+            text-align: center;
+            color: #888;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>📚 আমার ড্যাশবোর্ড</h2>
+        <button class="logout-btn" onclick="switchProfile()">প্রোফাইল পরিবর্তন</button>
+    </div>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h3 id="welcomeText">স্বাগতম, শিক্ষার্থী!</h3>
+            <p id="studentIdText">আইডি: লোড হচ্ছে...</p>
+        </div>
+
+        <h3 class="section-title">চলমান পরীক্ষাসমূহ</h3>
+        
+        <div id="loadingExams">পরীক্ষার তালিকা লোড হচ্ছে...</div>
+        
+        <div class="exam-grid" id="examContainer">
+            </div>
+    </div>
+
+<script>
+    // আপনার আসল ফায়ারবেস কনফিগারেশন বসানো হলো
+    const firebaseConfig = {
+        apiKey: "AIzaSyAXFM4AK9ksDFF3yfR_R9DQDNhePcApYWY",
+        authDomain: "primary-scholarship-exam.firebaseapp.com",
+        databaseURL: "https://primary-scholarship-exam-default-rtdb.firebaseio.com",
+        projectId: "primary-scholarship-exam",
+        storageBucket: "primary-scholarship-exam.firebasestorage.app",
+        messagingSenderId: "938899950508",
+        appId: "1:938899950508:web:9e4d3c77aee2578ddc8809"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+
+    // পেজ লোড হওয়ার পর ইউজারের তথ্য ও এক্সাম লিস্ট আনা
+    window.onload = function() {
+        const studentID = localStorage.getItem("loggedInUserID");
+
+        // যদি কেউ লগইন না করে ড্যাশবোর্ডে চলে আসে, তাকে লগইন পেজে পাঠাবে
+        // লক্ষ্য করুন: আপনার প্রথম পেজটি যদি index.html হয়, তবে এখানে "login.html" এর জায়গায় "index.html" দিতে হতে পারে।
+        if (!studentID) {
+            window.location.replace("index.html"); 
+            return;
+        }
+
+        loadStudentProfile(studentID);
+        loadAvailableExams();
+    };
+
+    // ফায়ারবেস থেকে শিক্ষার্থীর নাম আনা
+    function loadStudentProfile(studentID) {
+        database.ref('Students_Data/' + studentID).once('value').then((snapshot) => {
+            const data = snapshot.val();
+            if (data && data.name) {
+                document.getElementById('welcomeText').innerText = "স্বাগতম, " + data.name + "!";
+                document.getElementById('studentIdText').innerText = "স্টুডেন্ট আইডি: " + studentID + " | স্কুল: " + data.school;
+            }
+        }).catch((error) => {
+            console.error("প্রোফাইল লোড করতে সমস্যা:", error);
+        });
+    }
+
+    // ফায়ারবেস থেকে সব এক্সামের ফোল্ডার আনা
+    function loadAvailableExams() {
+        const container = document.getElementById('examContainer');
+        const loadingText = document.getElementById('loadingExams');
+
+        database.ref('Exams').once('value').then((snapshot) => {
+            loadingText.style.display = 'none'; // লোডিং টেক্সট লুকানো
+            container.innerHTML = ''; // কন্টেইনার ক্লিয়ার করা
+
+            if (snapshot.exists()) {
+                // প্রতিটি এক্সাম ফোল্ডারের জন্য একটি করে কার্ড তৈরি করা
+                snapshot.forEach((childSnapshot) => {
+                    const examID = childSnapshot.key; // যেমন: ModelTest_01
+                    const questions = childSnapshot.val();
+                    const totalQuestions = Object.keys(questions).length; // মোট কয়টি প্রশ্ন আছে
+
+                    // এক্সামের নাম সুন্দর করে দেখানো (আন্ডারস্কোর বাদ দিয়ে)
+                    const displayTitle = examID.replace(/_/g, " ");
+
+                    const cardHTML = `
+                        <div class="exam-card">
+                            <div class="exam-title">${displayTitle}</div>
+                            <div class="exam-info">মোট প্রশ্ন: ${totalQuestions} টি</div>
+                            <button class="start-btn" onclick="startExam('${examID}')">পরীক্ষা শুরু করো</button>
+                        </div>
+                    `;
+                    container.innerHTML += cardHTML;
+                });
+            } else {
+                container.innerHTML = "<p style='color:red;'>এই মুহূর্তে কোনো পরীক্ষা নেই।</p>";
+            }
+        }).catch((error) => {
+            loadingText.innerText = "ডাটা লোড করতে সমস্যা হয়েছে!";
+            console.error(error);
+        });
+    }
+
+    // পরীক্ষা শুরু বাটনে ক্লিক করলে
+    function startExam(examID) {
+        // এক্সামের আইডিটা মেমোরিতে সেভ করে এক্সাম পেজে পাঠানো
+        sessionStorage.setItem("currentExamID", examID);
+        window.location.href = "exam.html";
+    }
+
+    // প্রোফাইল পরিবর্তন বাটন লজিক (নেটফ্লিক্স স্টাইলের জন্য)
+    function switchProfile() {
+        // শুধু অ্যাকটিভ ইউজারের আইডি সরাবে, ড্রাফট বা সেভ করা প্রোফাইল মুছবে না
+        localStorage.removeItem("loggedInUserID");
+        // লগআউট করার পর আগের পেজে (যেখানে প্রোফাইল সিলেক্ট করা যায়) পাঠিয়ে দেবে
+        window.location.replace("index.html"); 
+    }
+</script>
+
+</body>
+</html>
