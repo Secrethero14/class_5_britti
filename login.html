@@ -1,1 +1,291 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>স্টুডেন্ট লগইন - মডেল টেস্ট</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <style>
+        body {
+            font-family: 'Kalpurush', Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* প্রোফাইল সিলেকশন স্টাইল */
+        #profileSelection {
+            display: none;
+        }
+
+        .profile-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .profile-btn:hover {
+            background-color: #45a049;
+        }
+
+        .new-user-btn {
+            background-color: #008CBA;
+        }
+
+        .new-user-btn:hover {
+            background-color: #007bb5;
+        }
+
+        /* রেজিস্ট্রেশন ফর্ম স্টাইল */
+        #registrationForm {
+            display: none;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box; /* ওভারল্যাপ ঠেকানোর জন্য */
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        .submit-btn {
+            background-color: #FF5722;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #e64a19;
+        }
+
+        .cancel-btn {
+            background-color: transparent;
+            color: #555;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        /* লোডিং স্পিনার */
+        #loading {
+            display: none;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="profileSelection">
+        <h2>কে পরীক্ষা দিচ্ছে?</h2>
+        <div id="profileList">
+        </div>
+        <button class="profile-btn new-user-btn" onclick="showRegistrationForm()">+ নতুন শিক্ষার্থী যোগ করুন</button>
+    </div>
+
+    <div id="registrationForm">
+        <h2>নতুন শিক্ষার্থী রেজিস্ট্রেশন</h2>
+        
+        <form id="studentForm" onsubmit="registerStudent(event)">
+            <div class="input-group">
+                <label for="studentName">শিক্ষার্থীর নাম (ইংরেজিতে):</label>
+                <input type="text" id="studentName" required placeholder="যেমন: Meghna">
+            </div>
+            
+            <div class="input-group">
+                <label for="schoolName">স্কুলের নাম:</label>
+                <input type="text" id="schoolName" required placeholder="স্কুলের নাম লিখুন">
+            </div>
+            
+            <div class="input-group">
+                <label for="mobileNo">অভিভাবকের মোবাইল নম্বর:</label>
+                <input type="tel" id="mobileNo" required pattern="[0-9]{11}" placeholder="017XXXXXXXX" title="১১ ডিজিটের মোবাইল নম্বর দিন">
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submitBtn">রেজিস্ট্রেশন করুন</button>
+            <button type="button" class="cancel-btn" id="cancelBtn" onclick="checkProfiles()">বাতিল করুন</button>
+        </form>
+        
+        <div id="loading">দয়া করে অপেক্ষা করুন...</div>
+    </div>
+
+</div>
+
+<script>
+    // আপনার ফায়ারবেস কনফিগারেশন
+    const firebaseConfig = {
+        apiKey: "AIzaSyAXFM4AK9ksDFF3yfR_R9DQDNhePcApYWY",
+        authDomain: "primary-scholarship-exam.firebaseapp.com",
+        databaseURL: "https://primary-scholarship-exam-default-rtdb.firebaseio.com",
+        projectId: "primary-scholarship-exam",
+        storageBucket: "primary-scholarship-exam.firebasestorage.app",
+        messagingSenderId: "938899950508",
+        appId: "1:938899950508:web:9e4d3c77aee2578ddc8809"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // পেজ লোড হলে চেক করবে আগে কেউ লগইন করা আছে কি না
+    window.onload = function() {
+        checkProfiles();
+    };
+
+    function checkProfiles() {
+        // লোকাল স্টোরেজ থেকে সেভ করা প্রোফাইল লিস্ট আনবে
+        let savedProfiles = JSON.parse(localStorage.getItem("savedProfiles")) || [];
+
+        if (savedProfiles.length > 0) {
+            // যদি আগে প্রোফাইল থাকে, তবে প্রোফাইল সিলেকশন দেখাবে
+            document.getElementById('registrationForm').style.display = 'none';
+            document.getElementById('profileSelection').style.display = 'block';
+            document.getElementById('cancelBtn').style.display = 'inline-block'; // বাতিল বাটন দেখাবে
+            
+            let profileListDiv = document.getElementById('profileList');
+            profileListDiv.innerHTML = ''; // আগের লিস্ট ক্লিয়ার করা
+
+            // প্রত্যেকটা প্রোফাইলের জন্য বাটন তৈরি করা
+            savedProfiles.forEach(profile => {
+                let btn = document.createElement('button');
+                btn.className = 'profile-btn';
+                btn.innerText = profile.name + " (" + profile.id + ")";
+                btn.onclick = function() { loginWithProfile(profile.id); };
+                profileListDiv.appendChild(btn);
+            });
+        } else {
+            // যদি কোনো প্রোফাইল না থাকে, সরাসরি ফর্ম দেখাবে
+            showRegistrationForm();
+            document.getElementById('cancelBtn').style.display = 'none'; // বাতিল বাটন লুকানো
+        }
+    }
+
+    function showRegistrationForm() {
+        document.getElementById('profileSelection').style.display = 'none';
+        document.getElementById('registrationForm').style.display = 'block';
+    }
+
+    // ফর্ম সাবমিট হলে এই ফাংশন চলবে
+    function registerStudent(event) {
+        event.preventDefault(); // পেজ রিলোড বন্ধ করা
+
+        // ফর্মের ইনপুটগুলো নেওয়া
+        let name = document.getElementById('studentName').value.trim();
+        let school = document.getElementById('schoolName').value.trim();
+        let mobile = document.getElementById('mobileNo').value.trim();
+
+        // বাটন লোডিং করা
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('loading').style.display = 'block';
+
+        // ইউনিক আইডি জেনারেট করা (নামের প্রথম ৩ অক্ষর + মোবাইলের শেষ ৩ ডিজিট + র‍্যান্ডম নাম্বার)
+        let shortName = name.substring(0, 3).toUpperCase();
+        let shortMobile = mobile.substring(mobile.length - 3);
+        let randomNum = Math.floor(Math.random() * 90) + 10; 
+        let uniqueID = shortName + shortMobile + randomNum; // e.g., MEG12345
+
+        // ফায়ারবেসে সেভ করার ডেটা
+        let studentData = {
+            id: uniqueID,
+            name: name,
+            school: school,
+            mobile: mobile,
+            registeredAt: new Date().toISOString()
+        };
+
+        // ফায়ারবেসে 'Students_Data' নোডে সেভ করা
+        database.ref('Students_Data/' + uniqueID).set(studentData)
+        .then(() => {
+            // ফায়ারবেসে সেভ হলে লোকাল স্টোরেজে প্রোফাইল অ্যাড করা
+            let savedProfiles = JSON.parse(localStorage.getItem("savedProfiles")) || [];
+            
+            // চেক করা যে একই আইডি আগে আছে কি না
+            let profileExists = savedProfiles.find(p => p.id === uniqueID);
+            if(!profileExists){
+                savedProfiles.push({ id: uniqueID, name: name });
+                localStorage.setItem("savedProfiles", JSON.stringify(savedProfiles));
+            }
+
+            alert(`রেজিস্ট্রেশন সফল! তোমার স্টুডেন্ট আইডি: ${uniqueID}`);
+            
+            // প্রোফাইল সিলেক্ট করে লগইন করে ফেলা
+            loginWithProfile(uniqueID);
+        })
+        .catch((error) => {
+            alert("দুঃখিত, ডেটাবেসে কানেক্ট হতে সমস্যা হচ্ছে।");
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('loading').style.display = 'none';
+        });
+    }
+
+    // প্রোফাইল বাটনে ক্লিক করলে বা নতুন রেজিস্ট্রেশন হলে এই ফাংশন চলবে
+    function loginWithProfile(uniqueID) {
+        // ড্যাশবোর্ডের জন্য বর্তমান অ্যাকটিভ ইউজার সেট করা
+        localStorage.setItem("loggedInUserID", uniqueID);
+        
+        // ড্যাশবোর্ড পেজে পাঠিয়ে দেওয়া (dashboard.html নামে আপনার পরের পেজটি থাকবে)
+        window.location.replace("dashboard.html"); 
+    }
+</script>
+
+</body>
+</html>
