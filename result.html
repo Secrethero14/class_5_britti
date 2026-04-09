@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ফলাফল ও সমাধান</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        body { font-family: 'Kalpurush', Arial, sans-serif; background: #f4f7f6; padding: 20px; margin: 0; color: #333; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #4CAF50; padding-bottom: 20px; margin-bottom: 30px; }
+        .score-board { display: flex; justify-content: space-around; background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e6c9; }
+        .score-box { text-align: center; }
+        .score-box h2 { margin: 0; font-size: 32px; color: #2E7D32; }
+        .score-box p { margin: 5px 0 0 0; font-weight: bold; }
+        .question-block { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa; }
+        .question-text { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .options-list { list-style-type: none; padding: 0; margin: 0; }
+        .options-list li { padding: 10px; margin-bottom: 5px; border-radius: 5px; background: #fff; border: 1px solid #eee; }
+        .correct-answer { background: #c8e6c9 !important; border-color: #4CAF50 !important; font-weight: bold; color: #2e7d32; }
+        .wrong-answer { background: #ffcdd2 !important; border-color: #f44336 !important; color: #c62828; text-decoration: line-through; }
+        .explanation { margin-top: 15px; padding: 15px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; white-space: pre-wrap; }
+        .btn-home { display: block; width: 100%; text-align: center; background: #2196F3; color: white; padding: 15px; border-radius: 5px; font-size: 18px; margin-top: 30px; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 id="examTitle">ফলাফল লোড হচ্ছে...</h1>
+    </div>
+
+    <div class="score-board">
+        <div class="score-box"><h2 id="totalScore">0</h2><p>মোট প্রাপ্ত নম্বর</p></div>
+        <div class="score-box"><h2 id="mcqTotalMarks">0</h2><p>মোট পরীক্ষার নম্বর</p></div>
+        <div class="score-box"><h2 id="writtenTotalMarks" style="color: #FF9800;">0</h2><p>লিখিত প্রাপ্ত নম্বর</p></div>
+    </div>
+
+    <div id="solutionContainer"><h3 style="text-align: center;">উত্তরমালা লোড হচ্ছে...</h3></div>
+
+    <button class="btn-home" onclick="window.location.replace('dashboard.html')">ড্যাশবোর্ডে ফিরে যান</button>
+</div>
+
+<script>
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbyyykIVG3Hgvk5HdMIXueAazFap1iNtqfMnyVKFGgP_qc7SMRmWTSlkd86tn1btuDOp/exec";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAXFM4AK9ksDFF3yfR_R9DQDNhePcApYWY",
+        authDomain: "primary-scholarship-exam.firebaseapp.com",
+        databaseURL: "https://primary-scholarship-exam-default-rtdb.firebaseio.com",
+        projectId: "primary-scholarship-exam"
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const database = firebase.database();
+
+    window.onload = function() {
+        const studentID = localStorage.getItem("loggedInUserID");
+        const examID = sessionStorage.getItem("currentExamID"); 
+
+        if(!studentID || !examID) {
+            window.location.replace("dashboard.html"); return;
+        }
+
+        document.getElementById('examTitle').innerText = (sessionStorage.getItem("currentExamName") || examID) + " - ফলাফল";
+        loadResultData(studentID, examID);
+    };
+
+    function loadResultData(studentID, examID) {
+        // ১. ফায়ারবেস থেকে স্টুডেন্টের দেওয়া উত্তর আনা
+        database.ref('Students_Data/' + studentID + '/exam_history/' + examID).once('value').then(snap => {
+            const studentAnswers = snap.exists() ? snap.val().answers : {};
+            
+            // ২. শিট থেকে মূল প্রশ্নগুলো আনা
+            fetch(SHEET_URL + "?action=getExam&tabId=" + examID)
+            .then(res => res.json())
+            .then(questions => {
+                if(questions.error) {
+                    document.getElementById('solutionContainer').innerHTML = "<p>প্রশ্নপত্র পাওয়া যায়নি।</p>";
+                } else {
+                    renderSolutions(questions, studentAnswers);
+                }
+            });
+        });
+    }
+
+    function renderSolutions(questions, studentAnswers) {
+        const container = document.getElementById('solutionContainer');
+        container.innerHTML = ''; 
+
+        let mcqEarnedMarks = 0; let writtenEarnedMarks = 0;
+        let totalMarks = 0; let questionCounter = 1;
+        const sortedIDs = Object.keys(questions).sort();
+
+        sortedIDs.forEach(qID => {
+            const qData = questions[qID];
+            let studentAns = studentAnswers[qID]; 
+            const qMarks = parseInt(qData.Marks) || 1; 
+            let html = "";
+
+            if (qData.Question_Type === 'passage') {
+                html += `<div style="background:#e3f2fd; padding:15px; border-left:5px solid #2196F3; margin-bottom:20px; border-radius:5px;">
+                            <strong style="color:#1565C0;">উদ্দীপক / Passage:</strong>
+                            <p style="white-space:pre-wrap;">${qData.Question}</p>
+                         </div>`;
+            } 
+            else if (qData.Question_Type === 'info') {
+                html += `<div style="background:#fff3e0; padding:15px; border-left:4px solid #FF9800; margin-bottom:20px;">
+                            <strong>${qData.Question}</strong><br>
+                            <span style="color:#555;">উত্তর: ${studentAns || "কিছু লেখোনি"}</span>
+                         </div>`;
+            }
+            else {
+                totalMarks += qMarks;
+                html += `<div class="question-block"><div class="question-text">${questionCounter}. ${qData.Question} [নম্বর: ${qMarks}]</div>`;
+
+                if (qData.Question_Type === 'mcq') {
+                    const correctAns = qData.Answer; 
+                    if (studentAns === correctAns) mcqEarnedMarks += qMarks;
+
+                    html += `<ul class="options-list">`;
+                    ['Option_A', 'Option_B', 'Option_C', 'Option_D'].forEach(opt => {
+                        if (qData[opt]) { 
+                            let liClass = "";
+                            if (qData[opt] === correctAns) liClass = "correct-answer"; 
+                            else if (qData[opt] === studentAns) liClass = "wrong-answer"; 
+                            html += `<li class="${liClass}">${qData[opt]}</li>`;
+                        }
+                    });
+                    html += `</ul>`;
+                } 
+                else if (qData.Question_Type === 'written') {
+                    let earned = 0; let statusColor = "#757575"; let bg = "#f5f5f5"; let text = "";
+
+                    if (studentAns === "খাতায় লিখেছি") {
+                        earned = qMarks; statusColor = "#2e7d32"; bg = "#e8f5e9";
+                        text = `✅ তুমি উত্তরটি খাতায় লিখেছো। (নম্বর: ${earned}/${qMarks})`;
+                    } else if (studentAns === "খাতায় লিখিনি") {
+                        earned = qMarks / 2; statusColor = "#f57c00"; bg = "#fff3e0";
+                        text = `⚠️ অর্ধেক নম্বর দেওয়া হলো। (নম্বর: ${earned}/${qMarks})`;
+                    } else {
+                        earned = 0; statusColor = "#c62828"; bg = "#ffcdd2";
+                        text = `❌ তুমি প্রশ্নটি পারোনি। (নম্বর: 0/${qMarks})`;
+                    }
+                    writtenEarnedMarks += earned;
+                    html += `<div style="background:${bg}; color:${statusColor}; padding:10px; border-radius:5px; font-weight:bold; margin-bottom:10px;">
+                                স্ট্যাটাস: ${studentAns || "উত্তর দাওনি"} <br> ${text}
+                             </div>`;
+                }
+
+                if (qData.Explanation) {
+                    html += `<div class="explanation"><strong>সঠিক উত্তর / ব্যাখ্যা: </strong><br> ${qData.Explanation}</div>`;
+                }
+                html += `</div>`;
+                questionCounter++;
+            }
+            container.innerHTML += html;
+        });
+
+        document.getElementById('totalScore').innerText = mcqEarnedMarks + writtenEarnedMarks;
+        document.getElementById('mcqTotalMarks').innerText = totalMarks;
+        document.getElementById('writtenTotalMarks').innerText = writtenEarnedMarks;
+    }
+</script>
+</body>
+</html>
