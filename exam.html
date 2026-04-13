@@ -56,20 +56,20 @@
         <h2 id="examTitle">লোড হচ্ছে...</h2>
     </div>
     <div style="display: flex; gap: 10px; align-items: center;">
-        <div id="timer" class="timer-box">সময় বাকি: --</div>
+        <div id="timer" class="timer-box">সময় বাকি: --</div>
         <button id="exitBtn" class="btn-exit" onclick="exitExam(true)">❌ এক্সাম দিবো না</button>
     </div>
 </div>
 
 <div class="container">
-    <div id="loadingScreen">প্রশ্নপত্র লোড হচ্ছে, দয়া করে অপেক্ষা করুন...</div>
+    <div id="loadingScreen">প্রশ্নপত্র লোড হচ্ছে, দয়া করে অপেক্ষা করুন...</div>
 
     <div id="introScreen" style="display: none;">
         <div id="modeAlert" style="display: none; background: #fff3e0; color: #e65100; padding: 15px; border-left: 5px solid #ff9800; border-radius: 5px; margin-bottom: 20px; font-weight: bold;">
-            🔁 এটি একটি প্র্যাকটিস এক্সাম। এই পরীক্ষার নম্বর মেধাতালিকায় যুক্ত হবে না।
+            🔁 এটি একটি প্র্যাকটিস এক্সাম। এই পরীক্ষার নম্বর মেধাতালিকায় যুক্ত হবে না।
         </div>
         <div class="instruction-box" id="instructionText"></div>
-        <h3 class="info-title">আপনার তথ্য প্রদান করুন:</h3>
+        <h3 class="info-title" id="infoTitle" style="display: none;">আপনার তথ্য প্রদান করুন:</h3>
         <form id="infoForm"><div id="infoContainer"></div></form>
         <button class="btn-main" onclick="startActualExam()">🚀 পরীক্ষা শুরু করুন</button>
     </div>
@@ -135,7 +135,7 @@
             document.getElementById('loadingScreen').style.display = 'none';
             if (questions.error || Object.keys(questions).length === 0) {
                 document.getElementById('introScreen').style.display = 'block';
-                document.getElementById('introScreen').innerHTML = "<h3 style='color:red;'>কোনো প্রশ্ন পাওয়া যায়নি!</h3>"; return;
+                document.getElementById('introScreen').innerHTML = "<h3 style='color:red;'>কোনো প্রশ্ন পাওয়া যায়নি!</h3>"; return;
             }
             globalQuestions = questions;
             renderQuestions(questions);
@@ -156,6 +156,8 @@
             let html = "";
 
             if(q.Question_Type === 'info') {
+                // info টাইপ প্রশ্ন থাকলে তবেই হেডিংটি দেখাবে
+                document.getElementById('infoTitle').style.display = 'inline-block';
                 html += `<div class="question-block"><div class="question-text">${q.Question}</div>
                          <input type="text" name="${q.id}" class="req-info" placeholder="এখানে লিখুন..." required onchange="saveDraft()"></div>`;
                 infoContainer.innerHTML += html;
@@ -180,8 +182,8 @@
                 html += `<div class="question-block" id="block_${q.id}" data-type="written">
                             <div class="question-text">${qCount}. ${q.Question} [নম্বর: ${q.Marks || 1}]</div>
                             <div class="written-options">
-                                <label class="written-btn"><input type="radio" name="${q.id}" value="খাতায় লিখেছি" onclick="removeError('block_${q.id}')" onchange="saveDraft()"> 📝 খাতায় লিখেছি</label>
-                                <label class="written-btn" style="background:#ffebee; border-color:#ef9a9a;"><input type="radio" name="${q.id}" value="খাতায় লিখিনি" onclick="removeError('block_${q.id}')" onchange="saveDraft()"> ❌ লিখিনি</label>
+                                <label class="written-btn"><input type="radio" name="${q.id}" value="খাতায় লিখেছি" onclick="removeError('block_${q.id}')" onchange="saveDraft()"> 📝 খাতায় লিখেছি</label>
+                                <label class="written-btn" style="background:#ffebee; border-color:#ef9a9a;"><input type="radio" name="${q.id}" value="খাতায় লিখিনি" onclick="removeError('block_${q.id}')" onchange="saveDraft()"> ❌ লিখিনি</label>
                                 <label class="written-btn" style="background:#fff3e0; border-color:#ffcc80;"><input type="radio" name="${q.id}" value="পারি না" onclick="removeError('block_${q.id}')" onchange="saveDraft()"> 🤷 পারি না</label>
                             </div>
                          </div>`;
@@ -193,7 +195,7 @@
     function startActualExam() {
         let infoInputs = document.querySelectorAll('.req-info');
         for (let input of infoInputs) {
-            if (input.value.trim() === "") { alert("দয়া করে প্রয়োজনীয় তথ্য প্রদান করুন।"); input.focus(); return; }
+            if (input.value.trim() === "") { alert("দয়া করে প্রয়োজনীয় তথ্য প্রদান করুন।"); input.focus(); return; }
         }
         document.getElementById('introScreen').style.display = 'none';
         document.getElementById('examScreen').style.display = 'block';
@@ -253,13 +255,13 @@
             timeTakenSeconds = Math.floor(((mins * 60000) - diff) / 1000);
 
             if (diff <= 0) {
-                clearInterval(timerInterval); alert("সময় শেষ! খাতা স্বয়ংক্রিয়ভাবে জমা দেওয়া হচ্ছে।"); submitExam(true);
+                clearInterval(timerInterval); alert("সময় শেষ! খাতা স্বয়ংক্রিয়ভাবে জমা দেওয়া হচ্ছে।"); submitExam(true);
             } else {
                 let h = Math.floor(diff / 3600000);
                 let m = Math.floor((diff % 3600000) / 60000);
                 let s = Math.floor((diff % 60000) / 1000);
                 
-                let timeStr = "সময় বাকি: ";
+                let timeStr = "সময় বাকি: ";
                 if(h > 0) timeStr += `${h} ঘণ্টা `;
                 if(m > 0 || h > 0) timeStr += `${m} মিনিট `;
                 timeStr += `${s} সেকেন্ড`;
@@ -270,7 +272,7 @@
 
     function exitExam(fromExitButton) {
         if (isExamRunning) {
-            if (confirm("আপনি কি পরীক্ষা না দিয়েই বের হয়ে যেতে চান? আপনার উত্তরগুলো জমা হবে না।")) {
+            if (confirm("আপনি কি পরীক্ষা না দিয়েই বের হয়ে যেতে চান? আপনার উত্তরগুলো জমা হবে না।")) {
                 window.location.replace("dashboard.html");
             }
         } else {
@@ -290,7 +292,7 @@
         const examData = new FormData(document.getElementById('examForm'));
         const finalAnswers = { ...Object.fromEntries(infoData.entries()), ...Object.fromEntries(examData.entries()) };
 
-        // নম্বর ক্যালকুলেট করা (লিডারবোর্ডের জন্য)
+        // নম্বর ক্যালকুলেট করার এডভান্সড লজিক (ব্র্যাকেট, অপশন এ/বি/সি সব সাপোর্ট করবে)
         let totalEarned = 0;
         Object.keys(globalQuestions).forEach(qID => {
             let q = globalQuestions[qID];
@@ -298,10 +300,17 @@
             let marks = parseInt(q.Marks) || 1;
 
             if(q.Question_Type === 'mcq') {
-                let correctText = (q.Answer && q[q.Answer]) ? q[q.Answer] : q.Answer;
+                let rawAns = q.Answer ? q.Answer.toString().trim() : "";
+                // রেগুলার এক্সপ্রেশন ব্যবহার করে "A", "(B)", "Option_C", "Option D" সবগুলোকে শুধু A/B/C/D তে রূপান্তর করা
+                let match = rawAns.toUpperCase().match(/^(?:OPTION[\s_]*)?[\(\[]?([A-D])[\)\]]?$/);
+                let ansKey = match ? match[1] : rawAns; 
+                
+                // সঠিক উত্তরের টেক্সট বের করা
+                let correctText = q["Option_" + ansKey] ? q["Option_" + ansKey] : rawAns;
+                
                 if(ans === correctText) totalEarned += marks;
             } else if (q.Question_Type === 'written') {
-                if(ans === "খাতায় লিখেছি") totalEarned += marks;
+                if(ans === "খাতায় লিখেছি") totalEarned += marks;
             }
         });
 
@@ -331,7 +340,7 @@
             localStorage.removeItem(studentID + "_" + currentExamID);
             window.location.replace("result.html");
         }).catch(error => {
-            alert("ইন্টারনেট সমস্যা! জমা দেওয়া যায়নি।");
+            alert("ইন্টারনেট সমস্যা! জমা দেওয়া যায়নি।");
             document.getElementById('submitBtn').innerText = "✅ পরীক্ষা জমা দিন";
             document.getElementById('submitBtn').disabled = false;
         });
