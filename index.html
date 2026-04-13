@@ -3,131 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>স্টুডেন্ট লগইন - মডেল টেস্ট</title>
+    <title>বৃত্তি প্রস্তুতি ও মডেল টেস্ট</title>
     <style>
-        body { font-family: 'Kalpurush', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column;}
+        body { font-family: 'Kalpurush', Arial, sans-serif; background-color: #f0f8ff; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column; text-align: center; }
         
-        .login-card { background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; border-top: 5px solid #FF9800;}
-        .login-card h2 { color: #333; margin-bottom: 25px; font-size: 24px; margin-top: 0;}
+        .hero-section { background-color: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); max-width: 500px; width: 90%; border-top: 5px solid #2196F3; }
         
-        .profile-btn { width: 100%; background-color: #4CAF50; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-bottom: 12px; transition: 0.3s; }
-        .profile-btn:hover { background-color: #388E3C; }
+        .hero-title { color: #1565C0; font-size: 28px; margin-bottom: 15px; margin-top: 0; }
+        .hero-text { color: #555; font-size: 18px; line-height: 1.6; margin-bottom: 30px; }
+        .highlight { color: #FF9800; font-weight: bold; }
         
-        .add-new-btn { width: 100%; background-color: #2196F3; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px;}
-        .add-new-btn:hover { background-color: #1976D2; }
+        .enter-btn { background-color: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 30px; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); text-decoration: none; display: inline-block; }
+        .enter-btn:hover { background-color: #388E3C; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6); }
         
-        .back-btn { background-color: transparent; color: #777; border: none; font-size: 15px; margin-bottom: 15px; cursor: pointer; text-decoration: underline; }
-        
-        #newProfileForm { display: none; margin-top: 20px; text-align: left; }
-        .input-field { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
-        
-        /* WhatsApp Button Styling */
-        .whatsapp-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #25D366;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 30px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 16px;
-            margin-top: 25px;
-            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
-            transition: 0.3s;
-        }
-        .whatsapp-btn:hover { background-color: #128C7E; transform: scale(1.05); }
+        .footer-text { margin-top: 30px; color: #888; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="login-card">
-        <button class="back-btn" onclick="window.location.href='index.html'">⬅ হোমপেজে ফিরে যান</button>
-        <h2 id="titleText">কে পরীক্ষা দিচ্ছে?</h2>
+    <div class="hero-section">
+        <h1 class="hero-title">পঞ্চম শ্রেণির বৃত্তি প্রস্তুতি 📚</h1>
+        <p class="hero-text">
+            প্রিয় শিক্ষার্থী, তোমার স্বপ্নের বৃত্তি পাওয়ার যাত্রায় তোমাকে স্বাগতম! এখানে তুমি অধ্যায়ভিত্তিক ও পূর্ণাঙ্গ মডেল টেস্ট দিয়ে নিজেকে যাচাই করতে পারবে।<br><br>
+            সঠিক প্রস্তুতি আর আত্মবিশ্বাস তোমাকে পৌঁছে দেবে সফলতার চূড়ায়। <span class="highlight">চলো, শুরু করা যাক!</span>
+        </p>
         
-        <div id="profileList"></div>
-        
-        <button class="add-new-btn" id="toggleAddBtn" onclick="showNewProfileForm()">+ নতুন শিক্ষার্থী যোগ করুন</button>
-
-        <div id="newProfileForm">
-            <input type="text" id="studentName" class="input-field" placeholder="শিক্ষার্থীর নাম">
-            <input type="number" id="studentPhone" class="input-field" placeholder="মোবাইল নাম্বার (১১ ডিজিট)">
-            <input type="text" id="studentSchool" class="input-field" placeholder="স্কুলের নাম (সংক্ষেপে)">
-            <button class="profile-btn" style="background-color: #FF9800;" onclick="saveAndLogin()">প্রবেশ করুন ➔</button>
-        </div>
-
-        <a href="https://wa.me/8801925251621?text=Ami%20exam%20login%20niye%20somossay%20porechi" target="_blank" class="whatsapp-btn">
-            যেকোনো সমস্যায় এখানে ক্লিক করুন 💬
-        </a>
+        <a href="login.html" class="enter-btn">🚀 পরীক্ষা দিতে প্রবেশ করো</a>
     </div>
 
-<script>
-    window.onload = function() {
-        loadProfiles();
-    };
+    <div class="footer-text">
+        © ২০২৬ মডেল টেস্ট প্ল্যাটফর্ম | সকল অধিকার সংরক্ষিত
+    </div>
 
-    function loadProfiles() {
-        const savedProfiles = JSON.parse(localStorage.getItem("studentProfiles")) || [];
-        const profileListDiv = document.getElementById("profileList");
-        profileListDiv.innerHTML = "";
-
-        if (savedProfiles.length > 0) {
-            savedProfiles.forEach(profile => {
-                let shortPhone = profile.phone.toString();
-                if(shortPhone.length >= 3) {
-                    shortPhone = "..." + shortPhone.slice(-3);
-                }
-
-                const btn = document.createElement("button");
-                btn.className = "profile-btn";
-                // School name add kora hoyeche display te
-                btn.innerHTML = `${profile.name} (${shortPhone})<br><small style="font-size:12px; opacity:0.8;">${profile.school || ''}</small>`; 
-                btn.onclick = function() { loginWithProfile(profile.phone); };
-                profileListDiv.appendChild(btn);
-            });
-        } else {
-            showNewProfileForm();
-        }
-    }
-
-    function showNewProfileForm() {
-        document.getElementById("newProfileForm").style.display = "block";
-        document.getElementById("toggleAddBtn").style.display = "none";
-        document.getElementById("titleText").innerText = "নতুন শিক্ষার্থী নিবন্ধন";
-    }
-
-    function saveAndLogin() {
-        const name = document.getElementById("studentName").value.trim();
-        const phone = document.getElementById("studentPhone").value.trim();
-        const school = document.getElementById("studentSchool").value.trim();
-
-        if (name === "" || phone === "" || school === "") {
-            alert("দয়া করে নাম, মোবাইল নাম্বার এবং স্কুলের নাম দিন।");
-            return;
-        }
-
-        // Mobile number length check (exactly 11 digits)
-        if (phone.length !== 11) {
-            alert("মোবাইল নাম্বার অবশ্যই ১১ ডিজিটের হতে হবে! আপনি " + phone.length + " টি সংখ্যা দিয়েছেন।");
-            return;
-        }
-
-        let savedProfiles = JSON.parse(localStorage.getItem("studentProfiles")) || [];
-        
-        const existingProfile = savedProfiles.find(p => p.phone === phone);
-        if (!existingProfile) {
-            savedProfiles.push({ name: name, phone: phone, school: school });
-            localStorage.setItem("studentProfiles", JSON.stringify(savedProfiles));
-        }
-
-        loginWithProfile(phone);
-    }
-
-    function loginWithProfile(phoneId) {
-        localStorage.setItem("loggedInUserID", phoneId);
-        window.location.href = "dashboard.html";
-    }
-</script>
 </body>
 </html>
