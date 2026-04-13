@@ -6,108 +6,75 @@
     <title>স্টুডেন্ট ড্যাশবোর্ড</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+    
     <style>
-        body {
-            font-family: 'Kalpurush', Arial, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 0;
-        }
-
-        .navbar {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .navbar h2 {
-            margin: 0;
-        }
-
-        .logout-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .logout-btn:hover {
-            background-color: #d32f2f;
-        }
-
-        .container {
-            padding: 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        /* ওয়েলকাম কার্ডের স্টাইল */
-        .welcome-card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            text-align: center;
-            border-top: 4px solid #4CAF50;
-        }
-
-        .welcome-card h3 {
-            color: #333;
-            margin: 0 0 10px 0;
-            font-size: 24px;
-        }
-
-        .welcome-card p {
-            color: #555;
-            margin: 0;
-            font-weight: bold;
-        }
-
-        .category-section { margin-bottom: 40px; }
-        .category-title { border-bottom: 3px solid #4CAF50; display: inline-block; padding-bottom: 5px; color: #2e7d32; margin-bottom: 20px; font-size: 22px; }
+        body { font-family: 'Kalpurush', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
         
-        /* এক্সাম কার্ডের ডিজাইন */
-        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .exam-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #2196F3; transition: 0.3s; }
-        .exam-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-        .exam-name { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #333; }
-        .exam-meta { font-size: 14px; color: #666; margin-bottom: 20px; font-weight: bold; }
+        /* Navbar with Back Button */
+        .navbar { background-color: #4CAF50; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;}
+        .navbar-left { display: flex; align-items: center; gap: 15px; }
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 16px; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold;}
+        .back-btn:hover { background: rgba(255,255,255,0.4); }
+        .navbar h2 { margin: 0; font-size: 22px; }
+        .logout-btn { background-color: #f44336; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .logout-btn:hover { background-color: #d32f2f; }
         
-        .btn-start { width: 100%; padding: 12px; background: #2196F3; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-start:hover { background: #1976D2; }
+        .container { padding: 20px; max-width: 1000px; margin: 0 auto; }
+        .welcome-card { background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; text-align: center; border-top: 4px solid #4CAF50; }
+        .welcome-card h3 { color: #333; margin: 0 0 10px 0; font-size: 24px; }
+        .welcome-card p { color: #555; margin: 0; font-weight: bold; font-size: 16px;}
         
-        #loadingText { text-align: center; color: #666; font-size: 18px; margin-top: 50px; }
+        /* Tab Buttons */
+        .tab-container { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
+        .tab-btn { padding: 12px 25px; font-size: 18px; border: none; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; background: #e0e0e0; color: #555; }
+        .tab-btn.active { background: #2196F3; color: white; box-shadow: 0 4px 10px rgba(33, 150, 243, 0.3); }
+
+        .category-title { border-bottom: 3px solid #4CAF50; display: inline-block; padding-bottom: 5px; color: #2e7d32; margin-bottom: 20px; font-size: 22px; margin-top: 10px;}
+        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px;}
+        
+        /* Exam Cards */
+        .exam-card { background: white; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #2196F3; transition: 0.3s; cursor: pointer; position: relative; }
+        .exam-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-left: 5px solid #4CAF50; }
+        .exam-name { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #333; display: flex; align-items: center; justify-content: space-between;}
+        .exam-meta { font-size: 15px; color: #666; font-weight: bold; margin-bottom: 5px;}
+        .click-hint { margin-top: 15px; font-size: 15px; color: #2196F3; font-weight: bold; background: #e3f2fd; display: inline-block; padding: 5px 10px; border-radius: 5px;}
+        
+        /* History Card */
+        .history-card { border-left: 5px solid #FF9800; }
+        .history-card .click-hint { color: #FF9800; background: #fff3e0; }
+        
+        #loadingText { text-align: center; color: #666; font-size: 18px; margin-top: 50px; font-weight: bold;}
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <h2>📚 আমার ড্যাশবোর্ড</h2>
-        <button class="logout-btn" onclick="switchProfile()">প্রোফাইল পরিবর্তন</button>
+        <div class="navbar-left">
+            <button class="back-btn" onclick="goBack()">⬅ ফিরে যান</button>
+            <h2>ড্যাশবোর্ড</h2>
+        </div>
+        <button class="logout-btn" onclick="switchProfile()">লগআউট</button>
     </div>
 
     <div class="container">
         <div class="welcome-card">
-            <h3 id="welcomeText">স্বাগতম, শিক্ষার্থী!</h3>
+            <h3 id="welcomeText">স্বাগতম!</h3>
             <p id="studentIdText">আইডি: লোড হচ্ছে...</p>
         </div>
 
-        <div id="mainContainer">
-            <h3 id="loadingText">পরীক্ষার তালিকা লোড হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।</h3>
+        <div class="tab-container">
+            <button class="tab-btn active" id="tabExams" onclick="switchTab('exams')">📚 নতুন পরীক্ষাসমূহ</button>
+            <button class="tab-btn" id="tabHistory" onclick="switchTab('history')">🕒 আমার হিস্ট্রি</button>
         </div>
+
+        <div id="loadingText">তথ্য লোড হচ্ছে, দয়া করে অপেক্ষা করুন...</div>
+
+        <div id="examsSection" style="display: none;"></div>
+        <div id="historySection" style="display: none;"></div>
     </div>
 
 <script>
-    // ১. ফায়ারবেস কনফিগারেশন (প্রোফাইল ডাটার জন্য)
+    // আপনার অরিজিনাল ফায়ারবেস কনফিগ
     const firebaseConfig = {
         apiKey: "AIzaSyAXFM4AK9ksDFF3yfR_R9DQDNhePcApYWY",
         authDomain: "primary-scholarship-exam.firebaseapp.com",
@@ -118,99 +85,170 @@
         appId: "1:938899950508:web:9e4d3c77aee2578ddc8809"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-
-    // ২. গুগল শিট Web App URL (পরীক্ষার লিস্টের জন্য)
+    
     const SHEET_URL = "https://script.google.com/macros/s/AKfycbyyykIVG3Hgvk5HdMIXueAazFap1iNtqfMnyVKFGgP_qc7SMRmWTSlkd86tn1btuDOp/exec";
 
+    let studentID = localStorage.getItem("loggedInUserID");
+    let globalExamsData = [];
+    let studentHistoryData = {};
+
     window.onload = function() {
-        const studentID = localStorage.getItem("loggedInUserID");
-        if (!studentID) {
-            window.location.replace("login.html");
-            return;
-        }
-        
-        // প্রোফাইল এবং পরীক্ষার লিস্ট লোড করা
-        loadStudentProfile(studentID);
-        loadDashboard();
+        if (!studentID) { window.location.replace("login.html"); return; }
+        document.getElementById('studentIdText').innerText = "স্টুডেন্ট আইডি: " + studentID;
+        fetchData();
     };
 
-    // ফায়ারবেস থেকে শিক্ষার্থীর নাম আনা
-    function loadStudentProfile(studentID) {
-        database.ref('Students_Data/' + studentID).once('value').then((snapshot) => {
-            const data = snapshot.val();
-            if (data && data.name) {
-                document.getElementById('welcomeText').innerText = "স্বাগতম, " + data.name + "!";
-                document.getElementById('studentIdText').innerText = "স্টুডেন্ট আইডি: " + studentID + " | স্কুল: " + (data.school || "দেওয়া হয়নি");
-            } else {
-                document.getElementById('welcomeText').innerText = "স্বাগতম, গেস্ট শিক্ষার্থী!";
-                document.getElementById('studentIdText').innerText = "স্টুডেন্ট আইডি: " + studentID;
-            }
-        }).catch((error) => {
-            console.error("প্রোফাইল লোড করতে সমস্যা:", error);
-        });
+    function goBack() {
+        if(document.referrer) { window.history.back(); }
+        else { alert("আপনি ইতিমধ্যে মূল ড্যাশবোর্ডে আছেন।"); }
     }
 
-    // গুগল শিট থেকে পরীক্ষার ফোল্ডার আনা
-    function loadDashboard() {
-        fetch(SHEET_URL + "?action=getDashboard")
+    function switchProfile() {
+        localStorage.removeItem("loggedInUserID");
+        window.location.replace("login.html");
+    }
+
+    function switchTab(tabName) {
+        document.getElementById('tabExams').classList.remove('active');
+        document.getElementById('tabHistory').classList.remove('active');
+        document.getElementById('examsSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'none';
+
+        if(tabName === 'exams') {
+            document.getElementById('tabExams').classList.add('active');
+            document.getElementById('examsSection').style.display = 'block';
+        } else {
+            document.getElementById('tabHistory').classList.add('active');
+            document.getElementById('historySection').style.display = 'block';
+        }
+    }
+
+    // ফায়ারবেস এবং শিট থেকে একসাথে ডাটা ফেচ করা
+    function fetchData() {
+        document.getElementById('loadingText').style.display = 'block';
+        
+        // ১. ফায়ারবেস থেকে প্রোফাইল এবং হিস্ট্রি নেওয়া
+        database.ref('Students_Data/' + studentID).once('value').then((snapshot) => {
+            const data = snapshot.val() || {};
+            if (data.name) document.getElementById('welcomeText').innerText = "স্বাগতম, " + data.name + "!";
+            studentHistoryData = data.exam_history || {};
+
+            // ২. শিট থেকে এক্সাম লিস্ট নেওয়া
+            return fetch(SHEET_URL + "?action=getDashboard");
+        })
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById('mainContainer');
+            globalExamsData = data.exams || [];
+            const paidUsers = data.paidUsers || [];
+            const isPremiumStudent = paidUsers.includes(studentID);
+
             document.getElementById('loadingText').style.display = 'none';
-
-            if (!data || data.length === 0) {
-                container.innerHTML = "<h3 style='text-align:center; color:red;'>কোনো পরীক্ষা পাওয়া যায়নি।</h3>";
-                return;
-            }
-
-            // ক্যাটাগরি অনুযায়ী গ্রুপিং
-            const categories = {};
-            data.forEach(exam => {
-                const cat = exam.Category || "General";
-                if (!categories[cat]) categories[cat] = [];
-                categories[cat].push(exam);
-            });
-
-            // স্ক্রিনে কার্ড রেন্ডার করা
-            for (let catName in categories) {
-                let section = `<div class="category-section">
-                    <h2 class="category-title">${catName}</h2>
-                    <div class="exam-grid">`;
-                
-                categories[catName].forEach(exam => {
-                    section += `
-                        <div class="exam-card">
-                            <div class="exam-name">${exam.Exam_Name}</div>
-                            <div class="exam-meta">সময়: ${exam.Total_Time} মিনিট | মোট নম্বর: ${exam.Total_Marks}</div>
-                            <button class="btn-start" onclick="startExam('${exam.Tab_ID}', ${exam.Total_Time}, '${exam.Exam_Name}')">পরীক্ষা শুরু করো</button>
-                        </div>`;
-                });
-                
-                section += `</div></div>`;
-                container.innerHTML += section;
-            }
-        }).catch(error => {
+            renderExams(isPremiumStudent);
+            renderHistory();
+            switchTab('exams'); // ডিফল্টভাবে এক্সাম ট্যাব ওপেন থাকবে
+        })
+        .catch(error => {
             document.getElementById('loadingText').innerText = "ডাটা লোড করতে সমস্যা হচ্ছে। ইন্টারনেট কানেকশন চেক করুন।";
             console.error(error);
         });
     }
 
-    // পরীক্ষা শুরু বাটনের লজিক
-    function startExam(id, time, name) {
+    // মূল পরীক্ষাসমূহ রেন্ডার করা
+    function renderExams(isPremiumStudent) {
+        const container = document.getElementById('examsSection');
+        container.innerHTML = "";
+
+        const visibleExams = globalExamsData.filter(exam => {
+            if (exam.Type && exam.Type.toLowerCase() === 'paid') return isPremiumStudent;
+            return true; 
+        });
+
+        if (visibleExams.length === 0) {
+            container.innerHTML = "<h3 style='text-align:center; color:#f44336; margin-top:30px;'>নতুন কোনো পরীক্ষা পাওয়া যায়নি।</h3>"; return;
+        }
+
+        const categories = {};
+        visibleExams.forEach(exam => {
+            const cat = exam.Category || "General";
+            if (!categories[cat]) categories[cat] = [];
+            categories[cat].push(exam);
+        });
+
+        for (let catName in categories) {
+            let section = `<div><h2 class="category-title">${catName}</h2><div class="exam-grid">`;
+            
+            categories[catName].forEach(exam => {
+                const badge = (exam.Type && exam.Type.toLowerCase() === 'paid') ? `<span style="background:#FF9800; color:white; padding:3px 8px; border-radius:12px; font-size:12px;">Premium 👑</span>` : '';
+                const isTaken = studentHistoryData[exam.Tab_ID] ? true : false;
+                const statusIcon = isTaken ? '🔁' : '🔴';
+
+                section += `
+                    <div class="exam-card" onclick="startExam('${exam.Tab_ID}', ${exam.Total_Time}, '${exam.Exam_Name}', '${exam.Instruction}', ${isTaken})">
+                        <div class="exam-name"><span>${exam.Exam_Name}</span> ${badge}</div>
+                        <div class="exam-meta">সময়: ${exam.Total_Time} মিনিট | নম্বর: ${exam.Total_Marks}</div>
+                        <div class="click-hint">${statusIcon} পরীক্ষা শুরু করুন ➔</div>
+                    </div>`;
+            });
+            section += `</div></div>`;
+            container.innerHTML += section;
+        }
+    }
+
+    // হিস্ট্রি রেন্ডার করা
+    function renderHistory() {
+        const container = document.getElementById('historySection');
+        container.innerHTML = "";
+
+        const takenExamIDs = Object.keys(studentHistoryData);
+
+        if (takenExamIDs.length === 0) {
+            container.innerHTML = "<h3 style='text-align:center; color:#607d8b; margin-top:30px;'>তুমি এখনো কোনো পরীক্ষা দাওনি!</h3>"; return;
+        }
+
+        let section = `<div class="exam-grid" style="margin-top:20px;">`;
+        
+        takenExamIDs.forEach(id => {
+            // শিটের ডাটা থেকে পরীক্ষার আসল নাম খোঁজা
+            let examDetails = globalExamsData.find(e => e.Tab_ID === id);
+            let examName = examDetails ? examDetails.Exam_Name : "অজানা পরীক্ষা (" + id + ")";
+            let dateTaken = studentHistoryData[id].date || "তারিখ নেই";
+
+            section += `
+                <div class="exam-card history-card" onclick="viewResult('${id}', '${examName}')">
+                    <div class="exam-name">${examName}</div>
+                    <div class="exam-meta">অংশগ্রহণের তারিখ: ${dateTaken}</div>
+                    <div class="click-hint">🏆 ফলাফল ও সমাধান দেখুন ➔</div>
+                </div>`;
+        });
+        
+        section += `</div>`;
+        container.innerHTML = section;
+    }
+
+    // পরীক্ষা শুরু করার লজিক (Live vs Practice)
+    function startExam(id, time, name, instruction, isTaken) {
+        if (isTaken) {
+            let confirmPractice = confirm("তুমি এই পরীক্ষাটি আগে দিয়েছো!\n\nএখন আবার দিলে এটি 'প্র্যাকটিস এক্সাম 🔁' হিসেবে গণ্য হবে এবং তোমার নতুন নম্বর মেধাতালিকায় (Leaderboard) যুক্ত হবে না।\n\nতুমি কি প্র্যাকটিস করতে চাও?");
+            if (!confirmPractice) return; // স্টুডেন্ট না করলে বের হয়ে যাবে
+            sessionStorage.setItem("examMode", "practice");
+        } else {
+            sessionStorage.setItem("examMode", "live");
+        }
+
         sessionStorage.setItem("currentExamID", id);
         sessionStorage.setItem("currentExamTime", time);
         sessionStorage.setItem("currentExamName", name);
+        sessionStorage.setItem("currentExamInstruction", instruction || "সততার সাথে পরীক্ষা দাও।"); 
         window.location.href = "exam.html";
     }
 
-    // প্রোফাইল পরিবর্তন বাটন লজিক (লগআউট)
-    function switchProfile() {
-        localStorage.removeItem("loggedInUserID");
-        window.location.replace("login.html");
+    // রেজাল্ট পেজে যাওয়ার লজিক
+    function viewResult(id, name) {
+        sessionStorage.setItem("currentExamID", id);
+        sessionStorage.setItem("currentExamName", name);
+        window.location.href = "result.html";
     }
 </script>
 </body>
