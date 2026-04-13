@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>স্টুডেন্ট লগইন - মডেল টেস্ট</title>
+    <style>
+        body { font-family: 'Kalpurush', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column;}
+        
+        .login-card { background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 90%; border-top: 5px solid #FF9800;}
+        .login-card h2 { color: #333; margin-bottom: 30px; font-size: 24px; margin-top: 0;}
+        
+        .profile-btn { width: 100%; background-color: #4CAF50; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
+        .profile-btn:hover { background-color: #388E3C; }
+        
+        .add-new-btn { width: 100%; background-color: #2196F3; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .add-new-btn:hover { background-color: #1976D2; }
+        
+        .back-btn { background-color: transparent; color: #777; border: none; font-size: 16px; margin-bottom: 20px; cursor: pointer; text-decoration: underline; }
+        .back-btn:hover { color: #333; }
+        
+        #newProfileForm { display: none; margin-top: 20px; text-align: left; }
+        .input-field { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <button class="back-btn" onclick="window.location.href='index.html'">⬅ হোমপেজে ফিরে যান</button>
+        <h2 id="titleText">কে পরীক্ষা দিচ্ছে?</h2>
+        
+        <div id="profileList"></div>
+        
+        <button class="add-new-btn" onclick="showNewProfileForm()">+ নতুন শিক্ষার্থী যোগ করুন</button>
+
+        <div id="newProfileForm">
+            <input type="text" id="studentName" class="input-field" placeholder="শিক্ষার্থীর নাম">
+            <input type="number" id="studentPhone" class="input-field" placeholder="মোবাইল নাম্বার (আইডি হিসেবে)">
+            <button class="profile-btn" style="background-color: #FF9800;" onclick="saveAndLogin()">প্রবেশ করুন ➔</button>
+        </div>
+    </div>
+
+<script>
+    window.onload = function() {
+        loadProfiles();
+    };
+
+    function loadProfiles() {
+        const savedProfiles = JSON.parse(localStorage.getItem("studentProfiles")) || [];
+        const profileListDiv = document.getElementById("profileList");
+        profileListDiv.innerHTML = "";
+
+        if (savedProfiles.length > 0) {
+            savedProfiles.forEach(profile => {
+                let shortPhone = profile.phone;
+                if(shortPhone && shortPhone.length >= 3) {
+                    shortPhone = "..." + shortPhone.slice(-3);
+                }
+
+                const btn = document.createElement("button");
+                btn.className = "profile-btn";
+                btn.innerText = `${profile.name} (${shortPhone})`; 
+                btn.onclick = function() { loginWithProfile(profile.phone); };
+                profileListDiv.appendChild(btn);
+            });
+        } else {
+            showNewProfileForm();
+        }
+    }
+
+    function showNewProfileForm() {
+        document.getElementById("newProfileForm").style.display = "block";
+        document.getElementById("titleText").innerText = "নতুন শিক্ষার্থী নিবন্ধন";
+    }
+
+    function saveAndLogin() {
+        const name = document.getElementById("studentName").value.trim();
+        const phone = document.getElementById("studentPhone").value.trim();
+
+        if (name === "" || phone === "") {
+            alert("দয়া করে নাম এবং মোবাইল নাম্বার দিন।");
+            return;
+        }
+
+        let savedProfiles = JSON.parse(localStorage.getItem("studentProfiles")) || [];
+        
+        const existingProfile = savedProfiles.find(p => p.phone === phone);
+        if (!existingProfile) {
+            savedProfiles.push({ name: name, phone: phone });
+            localStorage.setItem("studentProfiles", JSON.stringify(savedProfiles));
+        }
+
+        loginWithProfile(phone);
+    }
+
+    function loginWithProfile(phoneId) {
+        localStorage.setItem("loggedInUserID", phoneId);
+        window.location.href = "dashboard.html";
+    }
+</script>
+</body>
+</html>
