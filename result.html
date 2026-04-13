@@ -3,165 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ফলাফল ও সমাধান</title>
+    <title>ফলাফল ও মেধাতালিকা</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+    
     <style>
         body { font-family: 'Kalpurush', Arial, sans-serif; background: #f4f7f6; padding: 20px; margin: 0; color: #333; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 2px solid #4CAF50; padding-bottom: 20px; margin-bottom: 30px; }
-        .score-board { display: flex; justify-content: space-around; background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c8e6c9; }
+        
+        /* Navbar */
+        .navbar { background-color: #4CAF50; color: white; padding: 10px 20px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; gap: 15px;}
+        .back-btn { background: rgba(255,255,255,0.2); border: none; color: white; font-size: 16px; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s;}
+        .back-btn:hover { background: rgba(255,255,255,0.4); }
+        .navbar h2 { margin: 0; font-size: 20px; }
+
+        .container { max-width: 800px; margin: 20px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .score-board { display: flex; justify-content: space-around; background: #e8f5e9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #c8e6c9; }
         .score-box { text-align: center; }
-        .score-box h2 { margin: 0; font-size: 32px; color: #2E7D32; }
-        .score-box p { margin: 5px 0 0 0; font-weight: bold; }
-        .question-block { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa; }
+        .score-box h2 { margin: 0; font-size: 36px; color: #2E7D32; }
+        .score-box p { margin: 5px 0 0 0; font-weight: bold; font-size: 16px; color: #555;}
+        
+        .question-block { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 25px; background: #fafafa; }
         .question-text { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        
+        .status-box { padding: 10px 15px; border-radius: 5px; font-weight: bold; margin-bottom: 15px; font-size: 16px; }
+        .status-skipped { background: #fff3e0; color: #e65100; border-left: 4px solid #ff9800; }
+        .status-correct { background: #e8f5e9; color: #1b5e20; border-left: 4px solid #4CAF50; }
+        .status-wrong { background: #ffebee; color: #b71c1c; border-left: 4px solid #f44336; }
+
         .options-list { list-style-type: none; padding: 0; margin: 0; }
-        .options-list li { padding: 10px; margin-bottom: 5px; border-radius: 5px; background: #fff; border: 1px solid #eee; }
-        .correct-answer { background: #c8e6c9 !important; border-color: #4CAF50 !important; font-weight: bold; color: #2e7d32; }
-        .wrong-answer { background: #ffcdd2 !important; border-color: #f44336 !important; color: #c62828; text-decoration: line-through; }
-        .explanation { margin-top: 15px; padding: 15px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px; white-space: pre-wrap; }
-        .btn-home { display: block; width: 100%; text-align: center; background: #2196F3; color: white; padding: 15px; border-radius: 5px; font-size: 18px; margin-top: 30px; border: none; cursor: pointer; font-weight: bold; }
+        .option-li { padding: 12px; margin-bottom: 8px; border-radius: 5px; background: #fff; border: 1px solid #eee; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .correct-ans { background: #e8f5e9; border: 1px solid #4CAF50; font-weight: bold; color: #2e7d32; }
+        .wrong-ans { background: #ffebee; border: 1px solid #f44336; color: #c62828; text-decoration: line-through; }
+        
+        /* Leaderboard Section */
+        .leaderboard-container { margin-top: 40px; border-top: 3px dashed #ccc; padding-top: 30px; display: none; }
+        .leaderboard-title { text-align: center; color: #FF9800; font-size: 24px; margin-bottom: 20px; }
+        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .leaderboard-table th, .leaderboard-table td { padding: 12px; border: 1px solid #ddd; text-align: center; font-size: 16px;}
+        .leaderboard-table th { background-color: #FF9800; color: white; }
+        .leaderboard-table tr:nth-child(even) { background-color: #fff3e0; }
+        .rank-1 { font-weight: bold; color: #d32f2f; background: #ffebee !important; }
+        .rank-2 { font-weight: bold; color: #1976D2; background: #e3f2fd !important; }
+        .rank-3 { font-weight: bold; color: #388E3C; background: #e8f5e9 !important; }
+
+        .btn-action { display: block; width: 100%; text-align: center; color: white; padding: 15px; border-radius: 8px; font-size: 18px; margin-top: 15px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s;}
+        .btn-merit { background: #FF9800; }
+        .btn-merit:hover { background: #F57C00; }
+        .btn-home { background: #2196F3; }
+        .btn-home:hover { background: #1976D2; }
+        
+        #loadingText { text-align: center; font-size: 18px; color: #666; font-weight: bold; padding: 40px; }
     </style>
 </head>
 <body>
 
+<div class="navbar">
+    <button class="back-btn" onclick="window.location.replace('dashboard.html')">⬅ ড্যাশবোর্ড</button>
+    <h2 id="examTitle">ফলাফল লোড হচ্ছে...</h2>
+</div>
+
 <div class="container">
-    <div class="header">
-        <h1 id="examTitle">ফলাফল লোড হচ্ছে...</h1>
+    <div id="loadingText">ফলাফল এবং উত্তরমালা প্রস্তুত করা হচ্ছে...</div>
+    
+    <div id="resultContent" style="display: none;">
+        <div class="score-board">
+            <div class="score-box"><h2 id="totalScore">0</h2><p>আপনার প্রাপ্ত নম্বর</p></div>
+            <div class="score-box"><h2 id="mcqTotalMarks">0</h2><p>পরীক্ষার মোট নম্বর</p></div>
+        </div>
+        
+        <div id="solutionContainer"></div>
+        
+        <button class="btn-action btn-merit" onclick="loadLeaderboard()">🏆 এই পরীক্ষার মেধাতালিকা দেখুন</button>
+        <button class="btn-action btn-home" onclick="window.location.replace('dashboard.html')">🏠 ড্যাশবোর্ডে ফিরে যান</button>
+
+        <div id="leaderboardSection" class="leaderboard-container">
+            <h2 class="leaderboard-title">🏆 টপ স্কোরার মেধাতালিকা</h2>
+            <div id="leaderboardContent">তালিকা লোড হচ্ছে...</div>
+        </div>
     </div>
-
-    <div class="score-board">
-        <div class="score-box"><h2 id="totalScore">0</h2><p>মোট প্রাপ্ত নম্বর</p></div>
-        <div class="score-box"><h2 id="mcqTotalMarks">0</h2><p>মোট পরীক্ষার নম্বর</p></div>
-        <div class="score-box"><h2 id="writtenTotalMarks" style="color: #FF9800;">0</h2><p>লিখিত প্রাপ্ত নম্বর</p></div>
-    </div>
-
-    <div id="solutionContainer"><h3 style="text-align: center;">উত্তরমালা লোড হচ্ছে...</h3></div>
-
-    <button class="btn-home" onclick="window.location.replace('dashboard.html')">ড্যাশবোর্ডে ফিরে যান</button>
 </div>
 
 <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycbyyykIVG3Hgvk5HdMIXueAazFap1iNtqfMnyVKFGgP_qc7SMRmWTSlkd86tn1btuDOp/exec";
-
+    // আপনার ফায়ারবেস কনফিগ
     const firebaseConfig = {
         apiKey: "AIzaSyAXFM4AK9ksDFF3yfR_R9DQDNhePcApYWY",
         authDomain: "primary-scholarship-exam.firebaseapp.com",
         databaseURL: "https://primary-scholarship-exam-default-rtdb.firebaseio.com",
-        projectId: "primary-scholarship-exam"
+        projectId: "primary-scholarship-exam",
+        storageBucket: "primary-scholarship-exam.firebasestorage.app",
+        messagingSenderId: "938899950508",
+        appId: "1:938899950508:web:9e4d3c77aee2578ddc8809"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbyyykIVG3Hgvk5HdMIXueAazFap1iNtqfMnyVKFGgP_qc7SMRmWTSlkd86tn1btuDOp/exec";
+
+    let studentID = localStorage.getItem("loggedInUserID");
+    let examID = sessionStorage.getItem("currentExamID"); 
 
     window.onload = function() {
-        const studentID = localStorage.getItem("loggedInUserID");
-        const examID = sessionStorage.getItem("currentExamID"); 
-
-        if(!studentID || !examID) {
-            window.location.replace("dashboard.html"); return;
-        }
-
+        if(!studentID || !examID) { window.location.replace("dashboard.html"); return; }
         document.getElementById('examTitle').innerText = (sessionStorage.getItem("currentExamName") || examID) + " - ফলাফল";
-        loadResultData(studentID, examID);
-    };
-
-    function loadResultData(studentID, examID) {
-        // ১. ফায়ারবেস থেকে স্টুডেন্টের দেওয়া উত্তর আনা
+        
+        // ফায়ারবেস থেকে স্টুডেন্টের উত্তর নেওয়া
         database.ref('Students_Data/' + studentID + '/exam_history/' + examID).once('value').then(snap => {
             const studentAnswers = snap.exists() ? snap.val().answers : {};
             
-            // ২. শিট থেকে মূল প্রশ্নগুলো আনা
-            fetch(SHEET_URL + "?action=getExam&tabId=" + examID)
-            .then(res => res.json())
-            .then(questions => {
+            // শিট থেকে প্রশ্ন নেওয়া
+            fetch(SHEET_URL + "?action=getExam&tabId=" + examID).then(res => res.json()).then(questions => {
+                document.getElementById('loadingText').style.display = 'none';
+                document.getElementById('resultContent').style.display = 'block';
+                
                 if(questions.error) {
-                    document.getElementById('solutionContainer').innerHTML = "<p>প্রশ্নপত্র পাওয়া যায়নি।</p>";
+                    document.getElementById('solutionContainer').innerHTML = "<h3 style='color:red;'>প্রশ্নপত্র বা উত্তরমালা পাওয়া যায়নি।</h3>";
                 } else {
                     renderSolutions(questions, studentAnswers);
                 }
+            }).catch(e => {
+                document.getElementById('loadingText').innerText = "ইন্টারনেট সমস্যা। পেজটি রিলোড করুন।";
             });
         });
+    };
+
+    function cleanPrefix(text) {
+        if(!text) return "";
+        return text.toString().replace(/^([কখগঘa-dA-D১-৯]|\d+)[\.\)\।]\s*/, '').trim();
     }
 
     function renderSolutions(questions, studentAnswers) {
         const container = document.getElementById('solutionContainer');
         container.innerHTML = ''; 
+        let earnedMarks = 0; let totalMarks = 0; let qCount = 1;
 
-        let mcqEarnedMarks = 0; let writtenEarnedMarks = 0;
-        let totalMarks = 0; let questionCounter = 1;
-        const sortedIDs = Object.keys(questions).sort();
-
-        sortedIDs.forEach(qID => {
+        Object.keys(questions).sort().forEach(qID => {
             const qData = questions[qID];
             let studentAns = studentAnswers[qID]; 
             const qMarks = parseInt(qData.Marks) || 1; 
             let html = "";
 
-            if (qData.Question_Type === 'passage') {
-                html += `<div style="background:#e3f2fd; padding:15px; border-left:5px solid #2196F3; margin-bottom:20px; border-radius:5px;">
-                            <strong style="color:#1565C0;">উদ্দীপক / Passage:</strong>
-                            <p style="white-space:pre-wrap;">${qData.Question}</p>
-                         </div>`;
-            } 
-            else if (qData.Question_Type === 'info') {
-                html += `<div style="background:#fff3e0; padding:15px; border-left:4px solid #FF9800; margin-bottom:20px;">
-                            <strong>${qData.Question}</strong><br>
-                            <span style="color:#555;">উত্তর: ${studentAns || "কিছু লেখোনি"}</span>
+            if (qData.Question_Type === 'info') {
+                html += `<div style="background:#f5f5f5; padding:15px; border-left:4px solid #9e9e9e; margin-bottom:20px; border-radius:5px;">
+                            <strong>${qData.Question}</strong><br><span style="color:#555;">আপনার উত্তর: ${studentAns || "দেওয়া হয়নি"}</span>
                          </div>`;
             }
-            else {
+            else if (qData.Question_Type === 'passage') {
+                html += `<div style="background:#e3f2fd; padding:15px; border-left:5px solid #2196F3; margin-bottom:20px; border-radius:5px;">
+                            <strong style="color:#1565C0;">উদ্দীপক:</strong><p style="white-space:pre-wrap; margin-top:5px;">${qData.Question}</p></div>`;
+            }
+            else if (qData.Question_Type === 'written') {
                 totalMarks += qMarks;
-                html += `<div class="question-block"><div class="question-text">${questionCounter}. ${qData.Question} [নম্বর: ${qMarks}]</div>`;
+                let earned = 0; let statusHtml = "";
 
-                if (qData.Question_Type === 'mcq') {
-                    const correctAns = qData.Answer; 
-                    if (studentAns === correctAns) mcqEarnedMarks += qMarks;
+                if (studentAns === "খাতায় লিখেছি") {
+                    earned = qMarks; statusHtml = `<div class="status-box status-correct">✅ আপনি খাতায় লিখেছেন (প্রাপ্ত নম্বর: ${earned} / ${qMarks})</div>`;
+                } else if (studentAns === "খাতায় লিখিনি") {
+                    statusHtml = `<div class="status-box status-skipped">⚠️ আপনি খাতায় লেখেননি (প্রাপ্ত নম্বর: 0 / ${qMarks})</div>`;
+                } else if (studentAns === "পারি না") {
+                    statusHtml = `<div class="status-box status-wrong">❌ আপনি প্রশ্নটি পারেননি (প্রাপ্ত নম্বর: 0 / ${qMarks})</div>`;
+                } else {
+                    statusHtml = `<div class="status-box status-skipped">⚠️ আপনি কোনো অপশন সিলেক্ট করেননি (প্রাপ্ত নম্বর: 0 / ${qMarks})</div>`;
+                }
+                earnedMarks += earned;
 
-                    html += `<ul class="options-list">`;
-                    ['Option_A', 'Option_B', 'Option_C', 'Option_D'].forEach(opt => {
-                        if (qData[opt]) { 
-                            let liClass = "";
-                            if (qData[opt] === correctAns) liClass = "correct-answer"; 
-                            else if (qData[opt] === studentAns) liClass = "wrong-answer"; 
-                            html += `<li class="${liClass}">${qData[opt]}</li>`;
-                        }
-                    });
-                    html += `</ul>`;
-                } 
-                else if (qData.Question_Type === 'written') {
-                    let earned = 0; let statusColor = "#757575"; let bg = "#f5f5f5"; let text = "";
-
-                    if (studentAns === "খাতায় লিখেছি") {
-                        earned = qMarks; statusColor = "#2e7d32"; bg = "#e8f5e9";
-                        text = `✅ তুমি উত্তরটি খাতায় লিখেছো। (নম্বর: ${earned}/${qMarks})`;
-                    } else if (studentAns === "খাতায় লিখিনি") {
-                        earned = qMarks / 2; statusColor = "#f57c00"; bg = "#fff3e0";
-                        text = `⚠️ অর্ধেক নম্বর দেওয়া হলো। (নম্বর: ${earned}/${qMarks})`;
-                    } else {
-                        earned = 0; statusColor = "#c62828"; bg = "#ffcdd2";
-                        text = `❌ তুমি প্রশ্নটি পারোনি। (নম্বর: 0/${qMarks})`;
-                    }
-                    writtenEarnedMarks += earned;
-                    html += `<div style="background:${bg}; color:${statusColor}; padding:10px; border-radius:5px; font-weight:bold; margin-bottom:10px;">
-                                স্ট্যাটাস: ${studentAns || "উত্তর দাওনি"} <br> ${text}
+                html += `<div class="question-block"><div class="question-text">${qCount}. ${qData.Question}</div>${statusHtml}`;
+                if (qData.Explanation) {
+                    html += `<div style="margin-top:15px; padding:15px; background:#fffde7; border-left:4px solid #fbc02d; border-radius:5px; color:#333;">
+                                <strong style="color:#f57f17;">💡 সঠিক উত্তর / ব্যাখ্যা:</strong><br><span style="white-space:pre-wrap;">${qData.Explanation}</span>
                              </div>`;
                 }
+                html += `</div>`; qCount++;
+            }
+            else if (qData.Question_Type === 'mcq') {
+                totalMarks += qMarks;
+                let correctRawText = (qData.Answer && qData[qData.Answer]) ? qData[qData.Answer] : qData.Answer;
+                
+                let statusHtml = "";
+                if (!studentAns) {
+                    statusHtml = `<div class="status-box status-skipped">⚠️ আপনি প্রশ্নটি স্কিপ করেছেন!</div>`;
+                } else if (studentAns === correctRawText) {
+                    earnedMarks += qMarks;
+                    statusHtml = `<div class="status-box status-correct">✅ আপনার উত্তর সঠিক! (নম্বর: ${qMarks})</div>`;
+                } else {
+                    statusHtml = `<div class="status-box status-wrong">❌ আপনার উত্তর ভুল! (নম্বর: 0)</div>`;
+                }
+
+                html += `<div class="question-block">
+                            <div class="question-text">${qCount}. ${qData.Question}</div>
+                            ${statusHtml}
+                            <ul class="options-list">`;
+                
+                ['Option_A', 'Option_B', 'Option_C', 'Option_D'].forEach(opt => {
+                    let optVal = qData[opt];
+                    if (optVal) { 
+                        let liClass = "option-li"; let iconHtml = "";
+                        if (optVal === correctRawText) { 
+                            liClass += " correct-ans"; iconHtml = "<span>✅ সঠিক উত্তর</span>";
+                        } else if (optVal === studentAns) { 
+                            liClass += " wrong-ans"; iconHtml = "<span>❌ আপনার উত্তর</span>";
+                        }
+                        html += `<li class="${liClass}"><span>${cleanPrefix(optVal)}</span> ${iconHtml}</li>`;
+                    }
+                });
+                html += `</ul>`;
 
                 if (qData.Explanation) {
-                    html += `<div class="explanation"><strong>সঠিক উত্তর / ব্যাখ্যা: </strong><br> ${qData.Explanation}</div>`;
+                    html += `<div style="margin-top:15px; padding:15px; background:#fffde7; border-left:4px solid #fbc02d; border-radius:5px; color:#333;">
+                                <strong style="color:#f57f17;">💡 ব্যাখ্যা:</strong><br><span style="white-space:pre-wrap;">${qData.Explanation}</span>
+                             </div>`;
                 }
-                html += `</div>`;
-                questionCounter++;
+                html += `</div>`; qCount++;
             }
             container.innerHTML += html;
         });
 
-        document.getElementById('totalScore').innerText = mcqEarnedMarks + writtenEarnedMarks;
+        document.getElementById('totalScore').innerText = earnedMarks;
         document.getElementById('mcqTotalMarks').innerText = totalMarks;
-        document.getElementById('writtenTotalMarks').innerText = writtenEarnedMarks;
+    }
+
+    // মেধাতালিকা (Leaderboard) লোড করার লজিক
+    function loadLeaderboard() {
+        const section = document.getElementById('leaderboardSection');
+        const content = document.getElementById('leaderboardContent');
+        section.style.display = 'block';
+        content.innerHTML = "<b>ডাটাবেস থেকে মেধাতালিকা তৈরি হচ্ছে...</b>";
+        
+        // ফায়ারবেস থেকে ডাটা টানা
+        database.ref('Leaderboard/' + examID).once('value').then(snap => {
+            if (!snap.exists()) {
+                content.innerHTML = "<p style='text-align:center; color:red; font-weight:bold;'>এখনো কেউ এই পরীক্ষায় অংশগ্রহণ করেনি।</p>";
+                return;
+            }
+
+            let studentsList = [];
+            snap.forEach(childSnap => {
+                let sData = childSnap.val();
+                studentsList.push({
+                    name: sData.name || "অজ্ঞাত",
+                    score: parseFloat(sData.score) || 0,
+                    time: parseInt(sData.time_taken_seconds) || 999999
+                });
+            });
+
+            // সর্টিং লজিক: আগে বেশি নম্বর, নম্বর সমান হলে কম সময়
+            studentsList.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.time - b.time;
+            });
+
+            // টেবিল তৈরি করা
+            let tableHtml = `<table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>র‍্যাংক</th>
+                                        <th>স্টুডেন্টের নাম</th>
+                                        <th>প্রাপ্ত নম্বর</th>
+                                        <th>সময় লেগেছে</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+            
+            studentsList.forEach((student, index) => {
+                let rank = index + 1;
+                let rankClass = "";
+                let medal = "";
+                
+                if(rank === 1) { rankClass = "rank-1"; medal = "🥇 "; }
+                else if(rank === 2) { rankClass = "rank-2"; medal = "🥈 "; }
+                else if(rank === 3) { rankClass = "rank-3"; medal = "🥉 "; }
+
+                let m = Math.floor(student.time / 60);
+                let s = student.time % 60;
+                let timeStr = `${m} মি. ${s} সে.`;
+
+                tableHtml += `<tr class="${rankClass}">
+                                <td>${medal}${rank}</td>
+                                <td>${student.name}</td>
+                                <td><b>${student.score}</b></td>
+                                <td>${timeStr}</td>
+                              </tr>`;
+            });
+            
+            tableHtml += `</tbody></table>`;
+            content.innerHTML = tableHtml;
+
+            // টেবিল লোড হওয়ার পর স্ক্রল করে নিচে নিয়ে যাওয়া
+            section.scrollIntoView({ behavior: "smooth" });
+
+        }).catch(error => {
+            content.innerHTML = "<p style='color:red;'>মেধাতালিকা লোড করতে সমস্যা হচ্ছে।</p>";
+            console.error(error);
+        });
     }
 </script>
 </body>
